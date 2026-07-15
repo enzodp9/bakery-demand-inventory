@@ -1,0 +1,17 @@
+# Entornos y cachés de Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+env/
+*.egg-info/
+
+# Archivos intermedios regenerables por el pipeline (ver src/pipeline.py)
+data/interim/*
+!data/interim/.gitkeep
+
+# Editores / SO
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
