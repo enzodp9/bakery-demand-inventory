@@ -1,9 +1,8 @@
-# Optimización de inventario para una panadería
+# Análisis y pronóstico de demanda para inventario de panadería
 
-Trabajo Práctico Integrador de Investigación Operativa (UTN) que toma dos años de
-datos de ventas de una panadería y construye, de punta a punta, un plan de
-reposición de ingredientes: qué comprar y cuánto, minimizando costos de compra,
-almacenamiento y de ordenar, sin quedarse sin stock.
+Pipeline de punta a punta que toma dos años de datos de ventas de una panadería y
+construye un plan de reposición de ingredientes: qué comprar y cuánto, minimizando
+costos de compra, almacenamiento y de ordenar, sin quedarse sin stock.
 
 El pipeline combina tres técnicas de Investigación Operativa:
 
@@ -14,7 +13,7 @@ El pipeline combina tres técnicas de Investigación Operativa:
    inventario sujeto a capacidad de almacenamiento y capital inmovilizado.
 
 El informe completo con la fundamentación teórica y el análisis de resultados está en
-[`docs/Enzo Prediger - Trabajo Práctico Integrador.pdf`](docs/Enzo%20Prediger%20-%20Trabajo%20Pr%C3%A1ctico%20Integrador.pdf).
+[`docs/Informe técnico.pdf`](docs/Informe%20t%C3%A9cnico.pdf).
 
 ## Metodología
 

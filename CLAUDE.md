@@ -4,10 +4,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project overview
 
-Academic project (UTN, "Investigación Operativa" — Operations Research) that turns two years of
-bakery sales data into an ingredient replenishment plan: ABC-XYZ classification → SARIMA demand
-forecasting per ingredient → an NLP (Pyomo) inventory optimization model. See `README.md` for the
-full methodology write-up (in Spanish, matching the codebase and the academic report in `docs/`).
+An Operations Research pipeline that turns two years of bakery sales data into an ingredient
+replenishment plan: ABC-XYZ classification → SARIMA demand forecasting per ingredient → an NLP
+(Pyomo) inventory optimization model. See `README.md` for the full methodology write-up (in
+Spanish, matching the codebase and the report in `docs/`).
 
 The pipeline is a package of Python modules under `src/`, each one a pipeline stage with a public
 function plus a `if __name__ == "__main__":` guard so it can run standalone. There is no test suite —
