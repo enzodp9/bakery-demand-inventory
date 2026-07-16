@@ -1,5 +1,7 @@
 # Análisis y pronóstico de demanda para inventario de panadería
 
+🔗 **[Ver el tablero interactivo en vivo](https://bakery-demand-inventory.streamlit.app/)**
+
 Pipeline de punta a punta que toma dos años de datos de ventas de una panadería y
 construye un plan de reposición de ingredientes: qué comprar y cuánto, minimizando
 costos de compra, almacenamiento y de ordenar, sin quedarse sin stock.
@@ -102,6 +104,11 @@ python -m src.inventario
 ```
 
 ## Tablero interactivo (Streamlit)
+
+🔗 **[bakery-demand-inventory.streamlit.app](https://bakery-demand-inventory.streamlit.app/)**
+— deployado en Streamlit Community Cloud, se redeploya solo en cada push a `main`.
+
+Para correrlo local:
 
 ```bash
 streamlit run app/Inicio.py
