@@ -106,7 +106,7 @@ python -m src.inventario
 ## Tablero interactivo (Streamlit)
 
 🔗 **[bakery-demand-inventory.streamlit.app](https://bakery-demand-inventory.streamlit.app/)**
-— deployado en Streamlit Community Cloud, se redeploya solo en cada push a `main`.
+- deployado en Streamlit Community Cloud, se redeploya solo en cada push a `main`.
 
 Para correrlo local:
 
@@ -120,13 +120,13 @@ ingredientes (`data/interim/`, rápido, no requiere `ipopt`) si todavía no exis
 
 Páginas (`app/pages/`):
 
-1. **📊 Clasificación ABC-XYZ** — gráfico de Pareto interactivo, matriz de cantidad de
+1. **📊 Clasificación ABC-XYZ** - gráfico de Pareto interactivo, matriz de cantidad de
    productos por combinación ABC×XYZ, y tabla filtrable por clase.
-2. **🌾 Demanda de ingredientes** — curvas de demanda histórica (diaria/semanal/mensual),
+2. **🌾 Demanda de ingredientes** - curvas de demanda histórica (diaria/semanal/mensual),
    con selección de ingredientes y granularidad.
-3. **🔮 Pronóstico de demanda** — demanda histórica + pronóstico SARIMA a 52 semanas por
+3. **🔮 Pronóstico de demanda** - demanda histórica + pronóstico SARIMA a 52 semanas por
    ingrediente, con sus métricas de validación (MAE/RMSE/MAPE/sesgo).
-4. **📦 Plan de inventario** — el plan calculado (`Q`/`S` por semana, desglose de costos,
+4. **📦 Plan de inventario** - el plan calculado (`Q`/`S` por semana, desglose de costos,
    uso de capacidad de almacenamiento) y un **simulador what-if**: ajustá capacidad de
    almacenamiento, capital inmovilizado y costo de ordenar, y volvé a resolver el modelo
    NLP en vivo (unos segundos con `ipopt`) sin pisar el plan versionado en git.
@@ -136,4 +136,4 @@ y el resto de la app funciona igual (todo lo demás solo lee `data/results/`).
 
 ## Licencia
 
-MIT — ver [`LICENSE`](LICENSE).
+MIT - ver [`LICENSE`](LICENSE).
