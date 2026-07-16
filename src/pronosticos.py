@@ -23,7 +23,7 @@ def pronosticar_ingrediente(
     df: pd.DataFrame,
     salida_dir=DATA_RESULTS,
     graficar: bool = True,
-) -> pd.DataFrame:
+) -> tuple[pd.DataFrame, dict]:
     demanda = df[ingrediente]
     train_size = int(len(demanda) * 0.8)
     train, test = demanda[:train_size], demanda[train_size:]
@@ -39,12 +39,17 @@ def pronosticar_ingrediente(
 
     pronostico_test = ajuste.predict(start=len(train), end=len(train) + len(test) - 1)
 
-    mae = mean_absolute_error(test, pronostico_test)
-    rmse = np.sqrt(mean_squared_error(test, pronostico_test))
-    mape = np.mean(np.abs((test - pronostico_test) / test)) * 100
-    sesgo = np.mean(pronostico_test - demanda)
-
-    print(f"Métricas para {ingrediente}: MAE={mae:.2f} RMSE={rmse:.2f} MAPE={mape:.2f}% Sesgo={sesgo:.2f}")
+    metricas = {
+        "ingrediente": ingrediente,
+        "mae": mean_absolute_error(test, pronostico_test),
+        "rmse": np.sqrt(mean_squared_error(test, pronostico_test)),
+        "mape": np.mean(np.abs((test - pronostico_test) / test)) * 100,
+        "sesgo": np.mean(pronostico_test - demanda),
+    }
+    print(
+        f"Métricas para {ingrediente}: MAE={metricas['mae']:.2f} RMSE={metricas['rmse']:.2f} "
+        f"MAPE={metricas['mape']:.2f}% Sesgo={metricas['sesgo']:.2f}"
+    )
 
     pronostico_futuro = ajuste.predict(start=len(demanda), end=len(demanda) + SEMANAS_A_PRONOSTICAR - 1)
 
@@ -55,7 +60,7 @@ def pronosticar_ingrediente(
     if graficar:
         _graficar_pronostico(ingrediente, demanda, test, pronostico_test, pronostico_futuro)
 
-    return df_pronostico
+    return df_pronostico, metricas
 
 
 def _graficar_pronostico(ingrediente, demanda, test, pronostico_test, pronostico_futuro) -> None:
@@ -72,13 +77,19 @@ def _graficar_pronostico(ingrediente, demanda, test, pronostico_test, pronostico
     plt.show()
 
 
-def pronosticar_todos(interim_dir=DATA_INTERIM, salida_dir=DATA_RESULTS, graficar: bool = True) -> None:
+def pronosticar_todos(interim_dir=DATA_INTERIM, salida_dir=DATA_RESULTS, graficar: bool = True) -> pd.DataFrame:
     df = pd.read_csv(interim_dir / "demanda_semanal.csv", parse_dates=["week"], index_col="week")
     df.index = pd.date_range(start="2021-01-01", periods=len(df), freq="W")
 
+    metricas = []
     for ingrediente in INGREDIENTES:
         print(f"Procesando ingrediente: {ingrediente}")
-        pronosticar_ingrediente(ingrediente, df, salida_dir=salida_dir, graficar=graficar)
+        _, metricas_ingrediente = pronosticar_ingrediente(ingrediente, df, salida_dir=salida_dir, graficar=graficar)
+        metricas.append(metricas_ingrediente)
+
+    df_metricas = pd.DataFrame(metricas)
+    df_metricas.to_csv(salida_dir / "metricas_pronostico.csv", index=False)
+    return df_metricas
 
 
 if __name__ == "__main__":

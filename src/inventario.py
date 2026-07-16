@@ -65,7 +65,15 @@ def _cargar_demanda(pronostico_path, horizonte_semanas: int):
     return ingredientes, demanda
 
 
-def construir_modelo(ingredientes, demanda, horizonte_semanas: int) -> ConcreteModel:
+def construir_modelo(
+    ingredientes,
+    demanda,
+    horizonte_semanas: int,
+    vmax_secos: float = VMAX_SECOS,
+    vmax_humedos: float = VMAX_HUMEDOS,
+    cmax: float = CMAX,
+    costo_fijo_orden: float = COSTO_FIJO_ORDEN,
+) -> ConcreteModel:
     periodos = range(1, horizonte_semanas + 1)
     costo_almacenamiento = {i: COSTO_COMPRA[i] * 0.023 for i in COSTO_COMPRA}
     alpha = {i: -log(0.05) / CANTIDAD_REFERENCIA[i] for i in ingredientes}
@@ -84,22 +92,22 @@ def construir_modelo(ingredientes, demanda, horizonte_semanas: int) -> ConcreteM
     model.balance_inventario = Constraint(model.ingredientes, model.periodos, rule=balance_inventario)
 
     def capacidad_secos(model, t):
-        return sum(VOLUMEN_POR_KG[i] * model.S[i, t] for i in INGREDIENTES_SECOS) <= VMAX_SECOS
+        return sum(VOLUMEN_POR_KG[i] * model.S[i, t] for i in INGREDIENTES_SECOS) <= vmax_secos
 
     def capacidad_humedos(model, t):
-        return sum(VOLUMEN_POR_KG[i] * model.S[i, t] for i in INGREDIENTES_HUMEDOS) <= VMAX_HUMEDOS
+        return sum(VOLUMEN_POR_KG[i] * model.S[i, t] for i in INGREDIENTES_HUMEDOS) <= vmax_humedos
 
     model.capacidad_secos = Constraint(model.periodos, rule=capacidad_secos)
     model.capacidad_humedos = Constraint(model.periodos, rule=capacidad_humedos)
 
     def capital_inmovilizado(model, t):
-        return sum(COSTO_COMPRA[i] * model.S[i, t] for i in model.ingredientes) <= CMAX
+        return sum(COSTO_COMPRA[i] * model.S[i, t] for i in model.ingredientes) <= cmax
 
     model.capital_inmovilizado = Constraint(model.periodos, rule=capital_inmovilizado)
 
     def objetivo(model):
         costos_orden = sum(
-            COSTO_FIJO_ORDEN * (1 - exp(-alpha[i] * model.Q[i, t]))
+            costo_fijo_orden * (1 - exp(-alpha[i] * model.Q[i, t]))
             for i in model.ingredientes for t in model.periodos
         )
         costos_compra = sum(
@@ -118,9 +126,17 @@ def optimizar_inventario(
     pronostico_path=DATA_RESULTS / "PRONOSTICO_UNIFICADO.csv",
     salida=DATA_RESULTS / "plan_inventario.csv",
     horizonte_semanas: int = HORIZONTE_SEMANAS,
+    vmax_secos: float = VMAX_SECOS,
+    vmax_humedos: float = VMAX_HUMEDOS,
+    cmax: float = CMAX,
+    costo_fijo_orden: float = COSTO_FIJO_ORDEN,
+    guardar: bool = True,
 ) -> pd.DataFrame:
     ingredientes, demanda = _cargar_demanda(pronostico_path, horizonte_semanas)
-    model = construir_modelo(ingredientes, demanda, horizonte_semanas)
+    model = construir_modelo(
+        ingredientes, demanda, horizonte_semanas,
+        vmax_secos=vmax_secos, vmax_humedos=vmax_humedos, cmax=cmax, costo_fijo_orden=costo_fijo_orden,
+    )
 
     solver = SolverFactory("ipopt")
     solver.options["tol"] = 1e-6
@@ -134,14 +150,34 @@ def optimizar_inventario(
     ]
     plan = pd.DataFrame(filas)
 
-    salida.parent.mkdir(parents=True, exist_ok=True)
-    plan.to_csv(salida, index=False)
+    if guardar:
+        salida.parent.mkdir(parents=True, exist_ok=True)
+        plan.to_csv(salida, index=False)
 
     print("\n===== PLAN DE PEDIDOS E INVENTARIOS (kg) =====")
     for fila in filas:
         print(f"{fila['ingrediente']:10s}  semana {fila['semana']}: Q = {fila['Q']:8.1f}  S = {fila['S']:8.1f}")
 
     return plan
+
+
+def calcular_costos(plan: pd.DataFrame, costo_fijo_orden: float = COSTO_FIJO_ORDEN) -> dict:
+    """Desglosa el costo total de un plan (Q, S por ingrediente/semana) en sus tres componentes."""
+    costo_almacenamiento = {i: COSTO_COMPRA[i] * 0.023 for i in COSTO_COMPRA}
+    alpha = {i: -log(0.05) / CANTIDAD_REFERENCIA[i] for i in plan["ingrediente"].unique()}
+
+    costos_compra = sum(COSTO_COMPRA[fila.ingrediente] * fila.Q for fila in plan.itertuples())
+    costos_stock = sum(costo_almacenamiento[fila.ingrediente] * fila.S for fila in plan.itertuples())
+    costos_orden = sum(
+        costo_fijo_orden * (1 - exp(-alpha[fila.ingrediente] * fila.Q)) for fila in plan.itertuples()
+    )
+
+    return {
+        "compra": costos_compra,
+        "almacenamiento": costos_stock,
+        "orden": costos_orden,
+        "total": costos_compra + costos_stock + costos_orden,
+    }
 
 
 if __name__ == "__main__":

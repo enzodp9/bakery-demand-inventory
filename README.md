@@ -77,6 +77,7 @@ data/
 reports/
   figures/    gráficos finales (Pareto, curvas de demanda, series de tiempo)
 src/          pipeline de Python, un módulo por etapa (ver arriba)
+app/          tablero interactivo en Streamlit (ver más abajo)
 lingo/        formulación alternativa del modelo de inventario en LINGO
 docs/         informe completo (docx/pdf) y planillas de análisis ABC-XYZ
 ```
@@ -99,6 +100,32 @@ También se puede correr cada etapa por separado, por ejemplo:
 python -m src.analisis_abc
 python -m src.inventario
 ```
+
+## Tablero interactivo (Streamlit)
+
+```bash
+streamlit run app/Inicio.py
+```
+
+La app lee los resultados ya versionados en `data/results/` (no hace falta correr el
+pipeline completo primero); solo recalcula en el momento la demanda histórica de
+ingredientes (`data/interim/`, rápido, no requiere `ipopt`) si todavía no existe.
+
+Páginas (`app/pages/`):
+
+1. **📊 Clasificación ABC-XYZ** — gráfico de Pareto interactivo, matriz de cantidad de
+   productos por combinación ABC×XYZ, y tabla filtrable por clase.
+2. **🌾 Demanda de ingredientes** — curvas de demanda histórica (diaria/semanal/mensual),
+   con selección de ingredientes y granularidad.
+3. **🔮 Pronóstico de demanda** — demanda histórica + pronóstico SARIMA a 52 semanas por
+   ingrediente, con sus métricas de validación (MAE/RMSE/MAPE/sesgo).
+4. **📦 Plan de inventario** — el plan calculado (`Q`/`S` por semana, desglose de costos,
+   uso de capacidad de almacenamiento) y un **simulador what-if**: ajustá capacidad de
+   almacenamiento, capital inmovilizado y costo de ordenar, y volvé a resolver el modelo
+   NLP en vivo (unos segundos con `ipopt`) sin pisar el plan versionado en git.
+
+Si `ipopt` no está disponible en el entorno, el simulador se deshabilita automáticamente
+y el resto de la app funciona igual (todo lo demás solo lee `data/results/`).
 
 ## Licencia
 
